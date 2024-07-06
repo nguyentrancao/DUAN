@@ -9,31 +9,31 @@ import Phukiennb from "../Product/Phukien.js";
 import ProductCard from "../Product/Gtiphone.js";
 import InfoCard from "../Product/Service.js";
 import CustomComponent from "../Product/Blog.js";
+
 const Home = () => {
   return (
     <>
-    <Center>
-      <Box w={'100%'}> 
       <Center>
-        <Box mt={10} w={"80%"} >
-          <BannerHome />
+        <Box w={"100%"}>
+          <Center>
+            <Box mt={10} w={"80%"}>
+              <BannerHome />
+            </Box>
+          </Center>
+          <Center>
+            <Box mt={10} w={"80%"}>
+              <ProductTop></ProductTop>
+              <ProductList />
+              <ProductNb></ProductNb>
+              <Smartwach />
+              <Phukiennb />
+            </Box>
+          </Center>
+          <ProductCard />
+          <InfoCard />
+          <CustomComponent />
         </Box>
       </Center>
-      <Center>
-        <Box mt={10} w={"80%"} >
-          <ProductTop ></ProductTop>
-          <ProductList />
-          <ProductNb></ProductNb>
-          <Smartwach />
-          <Phukiennb />
-        </Box>
-      </Center>
-      <ProductCard />
-      <InfoCard />
-      <CustomComponent />
-      </Box>
-      </Center>
-
     </>
   );
 };

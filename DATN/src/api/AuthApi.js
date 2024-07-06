@@ -1,47 +1,28 @@
-// AuthApi.js
-
-const API_URL = "http://localhost:8017";
+// import { API_ROOT } from "../utils/constants";
+import axios from "axios";
 
 export const registerUser = async (userData) => {
-  try {
-    const res = await fetch(`${API_URL}/v1/auth/register`, {
-      method: "POST",
+  const response = await axios.post(
+    "http://localhost:8017/v2/users",
+    userData,
+    {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(userData),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.msg || "Error registering user");
     }
-
-    return data;
-  } catch (error) {
-    throw new Error(error.message);
-  }
+  );
+  return response.data;
 };
 
-export const loginUser = async (userData) => {
-  try {
-    const res = await fetch(`${API_URL}/v1/auth/login`, {
-      method: "POST",
+export const loginUser = async (formData) => {
+  const response = await axios.post(
+    "http://localhost:8017/v2/users/login",
+    formData,
+    {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(userData),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.msg || "Error logging in user");
     }
-
-    return data;
-  } catch (error) {
-    throw new Error(error.message);
-  }
+  );
+  return response.data;
 };

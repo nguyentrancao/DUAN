@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import "./Auth.css";
 import { Link } from "react-router-dom";
-import { Center } from "@chakra-ui/react";
-import { loginUser, registerUser } from "../../api/AuthApi"; // Import các hàm API từ AuthApi.js
+import { Center, Icon } from "@chakra-ui/react";
+import { registerUser } from "../../api/AuthApi";
+import axios from "axios";
+import { FaGoogle, FaFacebook, FaGithub, FaLinkedin } from "react-icons/fa";
 
-const Auth = ({ setUser }) => {
+const Auth = () => {
   const [isActive, setIsActive] = useState(false);
-  const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState({});
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [setMessage] = useState("");
 
   const handleLoginClick = () => {
     setIsActive(false);
@@ -16,172 +22,212 @@ const Auth = ({ setUser }) => {
     setIsActive(true);
   };
 
-  // Function to handle errors and display error messages
-  const handleError = (message) => {
-    setError(message);
-    setTimeout(() => {
-      setError("");
-    }, 5000); // Clear error message after 5 seconds
-  };
+  const validateForm = (formData) => {
+    const errors = {};
 
-  const onSubmitRegister = async (e) => {
-    e.preventDefault();
-
-    const formData = {
-      name: e.target.name.value,
-      email: e.target.email.value,
-      password: e.target.password.value,
-      confirmPassword: e.target.confirmPassword.value,
-    };
-
-    // Kiểm tra các điều kiện của form đăng ký
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      handleError("Please fill in all fields");
-      return;
+    if (!formData.username.trim()) {
+      errors.username = "Tên người dùng là bắt buộc";
     }
-
+    if (!formData.email) {
+      errors.email = "Email là bắt buộc";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = "Địa chỉ email không hợp lệ";
+    }
+    if (!formData.password) {
+      errors.password = "Mật khẩu là bắt buộc";
+    } else if (!/[A-Z]/.test(formData.password)) {
+      errors.password = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa";
+    } else if (!/[a-z]/.test(formData.password)) {
+      errors.password = "Mật khẩu phải chứa ít nhất một chữ cái viết thường";
+    } else if (!/[0-9]/.test(formData.password)) {
+      errors.password = "Mật khẩu phải chứa ít nhất một chữ số";
+    } else if (!/[^A-Za-z0-9]/.test(formData.password)) {
+      errors.password = "Mật khẩu phải chứa ít nhất một ký tự đặc biệt";
+    }
     if (formData.password !== formData.confirmPassword) {
-      handleError("Passwords do not match");
-      return;
+      errors.confirmPassword = "Mật khẩu không khớp";
     }
 
-    // Kiểm tra độ dài mật khẩu
-    if (formData.password.length < 6) {
-      handleError("Password must be at least 6 characters");
-      return;
-    }
+    return errors;
+  };
 
-    // Kiểm tra ký tự đặc biệt trong mật khẩu
-    const specialChars = /[!@#$%^&*(),.?":{}|<>]/;
-    if (!specialChars.test(formData.password)) {
-      handleError("Password must contain at least one special character");
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const formData = {
+      username: event.target.username.value,
+      email: event.target.email.value,
+      password: event.target.password.value,
+      confirmPassword: event.target.confirmPassword.value,
+    };
+
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
 
     try {
-      const data = await registerUser(formData); // Gửi yêu cầu đăng ký tới backend
-      setUser(data); // Lưu thông tin người dùng sau khi đăng ký thành công
-      handleError(""); // Xóa thông báo lỗi nếu thành công
+      const userData = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      };
+      const response = await registerUser(userData);
+      console.log("User registered successfully:", response);
+      setMessage("Registration successful!");
     } catch (error) {
-      handleError(error.message); // Xử lý và hiển thị thông báo lỗi từ backend
+      console.error("Registration failed:", error.message);
+      setMessage(
+        error.response?.data?.message ||
+          "Registration failed. Please try again."
+      );
     }
   };
 
-  const onSubmitLogin = async (e) => {
-    e.preventDefault();
-
-    const formData = {
-      email: e.target.email.value,
-      password: e.target.password.value,
-    };
-
-    // Kiểm tra các điều kiện của form đăng nhập
-    if (!formData.email || !formData.password) {
-      handleError("Please fill in all fields");
-      return;
-    }
-
+  const handleLogin = async () => {
     try {
-      const data = await loginUser(formData); // Gửi yêu cầu đăng nhập tới backend
-      setUser(data); // Lưu thông tin người dùng sau khi đăng nhập thành công
-      handleError(""); // Xóa thông báo lỗi nếu thành công
+      const response = await axios.post(
+        "http://localhost:8017/v2/users/login",
+        {
+          email,
+          password,
+        }
+      );
+
+      console.log("User logged in successfully:", response.data);
+      window.location.href = "http://localhost:3000/";
     } catch (error) {
-      handleError(error.message); // Xử lý và hiển thị thông báo lỗi từ backend
+      console.error("Login error:", error);
     }
   };
 
   return (
-    <Center>
-      <div className={`container ${isActive ? "active" : ""}`} id="container">
-        <div className="form-container sign-up">
-          <form onSubmit={onSubmitRegister}>
-            <h1>Tạo tài khoản</h1>
-            <div className="social-icons">
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-google-plus-g"></i>
-              </Link>
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-facebook-f"></i>
-              </Link>
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-github"></i>
-              </Link>
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-linkedin-in"></i>
-              </Link>
+    <>
+      <Center>
+        <div className={`container ${isActive ? "active" : ""}`} id="container">
+          <div className="form-container sign-up">
+            <form onSubmit={handleSubmit}>
+              <h1>Tạo tài khoản</h1>
+              <div className="social-icons">
+                <Link to="#" className="icon">
+                  <Icon as={FaGoogle} w={14} h={14} />
+                </Link>
+                <Link to="#" className="icon">
+                  <Icon as={FaFacebook} w={14} h={14} />
+                </Link>
+                <Link to="#" className="icon">
+                  <Icon as={FaGithub} w={14} h={14} />
+                </Link>
+                <Link to="#" className="icon">
+                  <Icon as={FaLinkedin} w={14} h={14} />
+                </Link>
+              </div>
+              <span>hoặc sử dụng email của bạn để đăng ký</span>
+              <input type="text" name="username" placeholder="Name" />
+              {formErrors.username && (
+                <p className="error">{formErrors.username}</p>
+              )}
+              <input type="email" name="email" placeholder="Email" />
+              {formErrors.email && <p className="error">{formErrors.email}</p>}
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              {formErrors.password && (
+                <p className="error">{formErrors.password}</p>
+              )}
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Nhập lại password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+              {formErrors.confirmPassword && (
+                <p className="error">{formErrors.confirmPassword}</p>
+              )}
+              <button type="submit">Đăng Kí</button>
+            </form>
+          </div>
+          <div className="form-container sign-in">
+            <div>
+              <div style={{ textAlign: "center" }}>
+                <h1>Đăng Nhập</h1>
+                <div
+                  className="social-icons"
+                  style={{ margin: "auto", width: "fit-content" }}
+                >
+                  <Link to="#" className="icon">
+                    <Icon as={FaGoogle} w={14} h={14} />
+                  </Link>
+                </div>
+              </div>
+
+              <form>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <div className="forgot-password">
+                  <Link to="/forgot-password">Đổi mật khẩu?</Link>
+                </div>
+                <button onClick={handleLogin}>Đăng nhập</button>
+              </form>
             </div>
-            <span>hoặc sử dụng email của bạn để đăng ký</span>
-            <input type="text" name="name" placeholder="Name" />
-            <input type="email" name="email" placeholder="Email" />
-            <input type="password" name="password" placeholder="Password" />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Nhập lại password"
-            />
-            <button type="submit">Đăng Kí</button>
-          </form>
-        </div>
-        <div className="form-container sign-in">
-          <form onSubmit={onSubmitLogin}>
-            <h1>Đăng nhập</h1>
-            <div className="social-icons">
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-google-plus-g"></i>
-              </Link>
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-facebook-f"></i>
-              </Link>
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-github"></i>
-              </Link>
-              <Link to="#" className="icon">
-                <i className="fa-brands fa-linkedin-in"></i>
-              </Link>
-            </div>
-            <span>hoặc sử dụng mật khẩu email của bạn</span>
-            <input type="email" name="email" placeholder="Email" />
-            <input type="password" name="password" placeholder="Password" />
-            <Link to="#">Quên mật khẩu của bạn?</Link>
-            <button type="submit">Đăng Nhập</button>
-          </form>
-        </div>
-        <div className="toggle-container">
-          <div className="toggle">
-            <div className="toggle-panel toggle-left">
-              <h1>Chào mừng trở lại!</h1>
-              <p>
-                Nhập thông tin cá nhân của bạn để sử dụng tất cả các tính năng
-                của trang web
-              </p>
-              <button className="hidden" id="login" onClick={handleLoginClick}>
-                Đăng nhập
-              </button>
-            </div>
-            <div className="toggle-panel toggle-right">
-              <h1>Chào bạn!</h1>
-              <p>
-                Đăng ký với thông tin cá nhân của bạn để sử dụng tất cả các tính
-                năng của trang web
-              </p>
-              <button
-                className="hidden"
-                id="register"
-                onClick={handleRegisterClick}
-              >
-                Đăng ký
-              </button>
+          </div>
+          <div className="toggle-container">
+            <div className="toggle">
+              <div className="toggle-panel toggle-left">
+                <h1>Chào mừng trở lại!</h1>
+                <p>
+                  Nhập thông tin cá nhân của bạn để sử dụng tất cả các tính năng
+                  của trang web
+                </p>
+                <button
+                  className="hidden"
+                  id="login"
+                  onClick={handleLoginClick}
+                >
+                  Đăng Ký
+                </button>
+              </div>
+              <div className="toggle-panel toggle-right">
+                <h1>Chào bạn!</h1>
+                <p>
+                  Đăng ký với thông tin cá nhân của bạn để sử dụng tất cả các
+                  tính năng của trang web
+                </p>
+                <button
+                  className="hidden"
+                  id="register"
+                  onClick={handleRegisterClick}
+                >
+                  Đăng Nhập
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        {error && <p className="error-message">{error}</p>}
-      </div>
-    </Center>
+      </Center>
+    </>
   );
 };
 
