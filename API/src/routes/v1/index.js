@@ -1,17 +1,13 @@
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
+
 import express from 'express'
-import { StatusCodes } from 'http-status-codes'
 import { boardRoute } from './boardRoute'
+import { boardController } from '~/controllers/boardController'
+import { cartRoute } from './cartRoute'
 
 const Router = express.Router()
 
-Router.get('/status', ( req, res ) => {
-  res.status(StatusCodes.OK).json({ massage: 'APIs V1 are ready to use.' })
-})
+Router.get('/', (boardController.getProduct))
 Router.use('/boards', boardRoute)
+Router.use('/cart', cartRoute )
 
 export const APIs_V1 = Router
