@@ -9,15 +9,35 @@ import {
   Image,
   Popover,
   PopoverBody,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
 } from "@chakra-ui/react";
 import { CiSearch } from "react-icons/ci";
 import { FaUser } from "react-icons/fa";
 import { BsCart2 } from "react-icons/bs";
 import { IoIosPhonePortrait, IoIosLaptop, IoIosHeadset } from "react-icons/io";
 import { CgAppleWatch } from "react-icons/cg";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate instead of useHistory
+import { ChevronDownIcon } from '@chakra-ui/icons'
 const Navbar = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  const handleHistoryClick = () => {
+    navigate("./Hproduct"); // Replace with your actual history page path
+  };
+
+  const handlePasswordClick = () => {
+    navigate("./Cpassword"); // Replace with your actual history page path
+  };
+
+  const handleAuthClick = () => {
+    navigate("./Auth"); // Replace with your actual history page path
+  };
+
+
   return (
     <Center>
       <Box
@@ -79,17 +99,28 @@ const Navbar = () => {
                   <Box ml={10}>
                     <Flex alignItems="center">
                       <Icon as={FaUser} fontSize="24px" color="#555" margin={2} />
-                      <Link to="/auth" style={{ textDecoration: "none" }}>
-                        <Heading
-                          fontWeight={400}
-                          m="2"
-                          cursor="pointer"
-                          fontSize="18px"
-                          color="#555"
+                      <Menu>
+                        <MenuButton
+                          px={4}
+                          py={2}
+                          transition="all 0.2s"
+                          borderRadius="5px"
+                          borderWidth="1px"
+                          _hover={{ bg: "gray" }}
+                          _expanded={{ bg: "blue" }}
+                          _focus={{ boxShadow: "outline" }}
+                          w={60}
+                          h={30}
+                      
                         >
-                          Đăng nhập
-                        </Heading>
-                      </Link>
+                          File <ChevronDownIcon/>
+                        </MenuButton>
+                        <MenuList>
+                     <MenuItem onClick={handleHistoryClick} h={30}>Lịch sử mua hàng</MenuItem>
+                          <MenuItem onClick={handlePasswordClick} h={30}>Đổi mật khẩu</MenuItem>
+                          <MenuItem onClick={handleAuthClick} h={30}>Đăng nhập</MenuItem>
+                        </MenuList>
+                      </Menu>
                     </Flex>
                   </Box>
                   <Box ml={10}>
@@ -114,12 +145,7 @@ const Navbar = () => {
           </Center>
         </Box>
 
-        <Box
-          borderTop="1px solid #ccc"
-          borderBottom="1px solid #ccc"
-          mt={10}
-          mb={2}
-        >
+        <Box borderTop="1px solid #ccc" borderBottom="1px solid #ccc" mt={10} mb={2}>
           <Popover>
             <PopoverBody>
               <Flex
